@@ -1,8 +1,10 @@
-FROM nginx:1.27-alpine
+FROM node:20-alpine
 
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-COPY dist/ /usr/share/nginx/html/
+WORKDIR /app
+COPY package.json server.mjs ./
+COPY dist/ ./dist/
 
+ENV PORT=8080
 EXPOSE 8080
 
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["node", "server.mjs"]

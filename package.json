@@ -1,0 +1,27 @@
+{
+  "name": "syndrome-scope",
+  "version": "1.0.0",
+  "description": "A native surface-code decoding game and analysis tool",
+  "private": true,
+  "type": "module",
+  "main": "electron/main.cjs",
+  "scripts": {
+    "start": "node server.mjs",
+    "desktop": "electron .",
+    "check": "node --check server.mjs && node --check dist/app.js && node --check electron/main.cjs && node --check electron/preload.cjs && python3 -c \"import ast; ast.parse(open('quantum/qiskit_lab.py').read())\"",
+    "test:desktop": "electron tests/desktop-smoke.cjs",
+    "package:mac": "electron-builder --mac dir"
+  },
+  "devDependencies": {
+    "electron": "^39.2.0",
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "appId": "com.quantum.syndromescope",
+    "productName": "QuantUM SyndromeScope",
+    "directories": { "output": "release" },
+    "files": ["dist/**/*", "electron/**/*", "quantum/**/*", "package.json"],
+    "asarUnpack": ["quantum/**/*"],
+    "mac": { "category": "public.app-category.education", "target": ["dir"] }
+  }
+}

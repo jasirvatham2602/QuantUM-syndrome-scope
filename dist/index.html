@@ -16,6 +16,7 @@
       </a>
       <div class="header-actions">
         <span class="cloud-pill"><span class="pulse"></span> IBM Cloud ready</span>
+        <a class="user-pill" id="userPill" href="/logout" hidden><span id="userInitial">G</span><span id="userName">Google user</span><b>Sign out</b></a>
         <button class="icon-button" id="helpButton" aria-label="Open help">?</button>
       </div>
     </header>
@@ -24,7 +25,7 @@
       <div>
         <p class="eyebrow">SURFACE-CODE LAB</p>
         <h1>See when a physical error<br><em>becomes a logical failure.</em></h1>
-        <p class="lede">Place error chains on a periodic surface code, inspect the stabilizer syndrome, then watch a decoder choose a correction.</p>
+        <p class="lede">Read the syndrome, draw a correction, and protect the hidden logical qubit. Then reveal exactly why your move worked—or failed.</p>
       </div>
       <div class="equation-card" aria-label="Syndrome equation">
         <span>SYNDROME</span>
@@ -36,34 +37,40 @@
     <section class="workspace">
       <aside class="control-panel">
         <div class="panel-heading">
-          <div><span class="step">01</span><h2>Inject an error</h2></div>
+          <div><span class="step">01</span><h2>Decode the puzzle</h2></div>
           <span class="status-dot">LIVE</span>
         </div>
 
-        <label class="field-label" for="presetSelect">SCENARIO</label>
+        <div class="mode-switch" role="group" aria-label="Game mode">
+          <button class="active" data-mode="challenge">Challenge</button>
+          <button data-mode="sandbox">Sandbox</button>
+        </div>
+
+        <label class="field-label" for="presetSelect">DIFFICULTY</label>
         <select id="presetSelect">
-          <option value="single">Single physical error</option>
-          <option value="chain">Short error chain</option>
-          <option value="logical">Logical loop</option>
-          <option value="random">Random physical noise</option>
+          <option value="tutorial">Tutorial · one error</option>
+          <option value="easy">Easy · short chain</option>
+          <option value="medium">Medium · two chains</option>
+          <option value="hard">Hard · ambiguous pairing</option>
         </select>
 
         <div class="button-stack">
-          <button class="primary" id="loadPreset">Load scenario <span>→</span></button>
-          <button class="secondary" id="decodeButton">Run decoder <span class="key">D</span></button>
-          <button class="ghost" id="resetButton">Reset lattice</button>
+          <button class="primary" id="loadPreset">New puzzle <span>→</span></button>
+          <button class="secondary" id="decodeButton">Submit correction <span class="key">↵</span></button>
+          <div class="button-row"><button class="ghost" id="undoButton">Undo</button><button class="ghost" id="hintButton">Hint</button></div>
+          <button class="ghost" id="resetButton">Clear correction</button>
         </div>
 
         <div class="instruction">
           <span>TIP</span>
-          <p>Click any lattice edge to toggle a physical <b>X error</b>. Checks at the chain’s endpoints light up automatically.</p>
+          <p id="tipText">The red error is hidden. Click lattice edges to draw a <b>blue correction</b> between the yellow syndrome defects.</p>
         </div>
 
         <div class="legend">
           <h3>Legend</h3>
-          <div><i class="swatch error"></i> Physical error</div>
+          <div><i class="swatch error"></i> Hidden error (after reveal)</div>
           <div><i class="swatch check"></i> Active stabilizer</div>
-          <div><i class="swatch correction"></i> Decoder correction</div>
+          <div><i class="swatch correction"></i> Player correction</div>
           <div><i class="swatch residual"></i> Remaining logical chain</div>
         </div>
       </aside>
@@ -72,7 +79,7 @@
         <div class="card-heading">
           <div>
             <span class="step">02</span>
-            <div><h2>Inspect the syndrome</h2><p>6 × 8 periodic lattice · 96 data qubits · 48 vertex checks</p></div>
+            <div><h2 id="boardTitle">Draw your correction</h2><p>6 × 8 periodic lattice · 96 data qubits · 48 vertex checks</p></div>
           </div>
           <div class="view-tabs" role="group" aria-label="Lattice view">
             <button class="active" data-view="lattice">Lattice</button>
@@ -81,7 +88,7 @@
         </div>
 
         <div class="lattice-wrap" id="latticeView">
-          <svg id="lattice" viewBox="0 0 820 520" role="img" aria-label="Interactive toric surface-code lattice"></svg>
+          <svg id="lattice" viewBox="0 0 820 520" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Interactive toric surface-code lattice"></svg>
           <div class="boundary-label horizontal">periodic boundary ↔</div>
           <div class="boundary-label vertical">periodic boundary ↕</div>
         </div>
@@ -92,9 +99,9 @@
         </div>
 
         <div class="metrics">
-          <div><span>PHYSICAL ERRORS</span><strong id="errorCount">0</strong></div>
+          <div><span>PUZZLE</span><strong id="puzzleCount">—</strong></div>
           <div><span>ACTIVE CHECKS</span><strong id="checkCount">0</strong></div>
-          <div><span>CORRECTION WEIGHT</span><strong id="correctionCount">—</strong></div>
+          <div><span>YOUR MOVES</span><strong id="correctionCount">0</strong></div>
           <div class="outcome neutral" id="outcomeMetric"><span>LOGICAL OUTCOME</span><strong id="outcomeText">READY</strong></div>
         </div>
       </section>
@@ -108,9 +115,9 @@
       <div class="explanation-grid">
         <div class="result-icon" id="resultIcon">◎</div>
         <div>
-          <p class="result-kicker" id="resultKicker">NO EXPERIMENT RUNNING</p>
-          <h3 id="resultTitle">Select a scenario or draw an error chain.</h3>
-          <p id="resultBody">SyndromeScope will calculate which stabilizers detect the chain and show whether the decoder restores the logical state.</p>
+          <p class="result-kicker" id="resultKicker">READY FOR A PUZZLE</p>
+          <h3 id="resultTitle">Can you decode what you cannot see?</h3>
+          <p id="resultBody">Start a puzzle, connect the syndrome defects, and submit. The hidden error is revealed only after your attempt.</p>
         </div>
         <div class="pipeline">
           <div><i>1</i><span>Physical error</span></div><b>→</b>
@@ -121,9 +128,59 @@
       </div>
     </section>
 
+    <section class="qiskit-card" id="qiskitLab">
+      <div class="panel-heading qiskit-heading">
+        <div><span class="step">04</span><div><h2>Qiskit Hardware Lab</h2><p>Run the stabilizer cycle as a real quantum circuit</p></div></div>
+        <span class="engine-pill" id="qiskitEngine"><span class="pulse"></span>Qiskit Aer ready</span>
+      </div>
+
+      <div class="qiskit-layout">
+        <div class="qiskit-controls">
+          <div class="lab-intro">
+            <p class="eyebrow">FROM REPETITION CODE TO SURFACE CODE</p>
+            <h3>Measure the error—not the logical information.</h3>
+            <p>Three data qubits store one logical qubit. Two ancillas measure parity checks, the same stabilizer-and-syndrome idea used across the 2D surface-code lattice above.</p>
+          </div>
+          <label class="field-label" for="logicalState">ENCODED LOGICAL STATE</label>
+          <select id="logicalState">
+            <option value="zero">|0ᴸ⟩ = |000⟩</option><option value="one">|1ᴸ⟩ = |111⟩</option><option value="plus">|+ᴸ⟩ = (|000⟩ + |111⟩)/√2</option>
+          </select>
+          <label class="field-label" for="errorQubit">INJECTED PHYSICAL ERROR</label>
+          <select id="errorQubit">
+            <option value="none">No error</option><option value="0">Bit flip X on q0</option><option value="1">Bit flip X on q1</option><option value="2">Bit flip X on q2</option>
+          </select>
+          <label class="field-label" for="qiskitShots">MEASUREMENT SHOTS</label>
+          <select id="qiskitShots"><option value="512">512 shots</option><option value="1024" selected>1,024 shots</option><option value="2048">2,048 shots</option></select>
+          <button class="primary run-circuit" id="runQiskit">Run Qiskit circuit <span>▶</span></button>
+          <p class="lab-status" id="qiskitStatus">Choose an error and run the experiment.</p>
+        </div>
+
+        <div class="qiskit-results">
+          <div class="qubit-line">
+            <div class="data-qubit" data-qubit="0"><i>q0</i><span>DATA</span></div><b class="check-link" data-check="0">Z₀Z₁</b>
+            <div class="data-qubit" data-qubit="1"><i>q1</i><span>DATA</span></div><b class="check-link" data-check="1">Z₁Z₂</b>
+            <div class="data-qubit" data-qubit="2"><i>q2</i><span>DATA</span></div>
+          </div>
+          <div class="syndrome-readout">
+            <div><span>CHECK Z₀Z₁</span><strong id="syndromeA">–</strong></div><div><span>CHECK Z₁Z₂</span><strong id="syndromeB">–</strong></div>
+            <div class="prediction"><span>DECODER INFERENCE</span><strong id="qiskitPrediction">Awaiting measurement</strong></div>
+          </div>
+          <div class="histogram-panel">
+            <div class="matrix-header"><span>Measured syndrome counts</span><span id="shotSummary">0 shots</span></div>
+            <div class="histogram" id="qiskitHistogram"><p>Run the circuit to generate Qiskit results.</p></div>
+          </div>
+          <details class="circuit-details"><summary>View generated quantum circuit</summary><pre id="qiskitCircuit">Circuit output will appear here.</pre></details>
+        </div>
+      </div>
+      <div class="surface-map">
+        <div><i>1</i><span><b>Data qubit</b>One physical edge</span></div><b>→</b><div><i>2</i><span><b>Parity ancilla</b>One stabilizer check</span></div><b>→</b>
+        <div><i>3</i><span><b>Syndrome bit</b>One yellow defect</span></div><b>→</b><div><i>4</i><span><b>Correction</b>One green edge</span></div>
+      </div>
+    </section>
+
     <footer>
       <span>Built for the QuantUM Qiskit Fall Fest Challenge</span>
-      <span>Prototype protocol: toric surface code · greedy minimum-distance decoder</span>
+      <span>Protocol: toric surface code · player decoder · greedy reference decoder</span>
     </footer>
   </main>
 
