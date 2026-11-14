@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Interactive surface-code error-chain and decoder visualizer">
+  <title>SyndromeScope</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="SyndromeScope home">
+        <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+        <span>SyndromeScope</span>
+      </a>
+      <div class="header-actions">
+        <span class="cloud-pill"><span class="pulse"></span> IBM Cloud ready</span>
+        <button class="icon-button" id="helpButton" aria-label="Open help">?</button>
+      </div>
+    </header>
+
+    <section class="hero">
+      <div>
+        <p class="eyebrow">SURFACE-CODE LAB</p>
+        <h1>See when a physical error<br><em>becomes a logical failure.</em></h1>
+        <p class="lede">Place error chains on a periodic surface code, inspect the stabilizer syndrome, then watch a decoder choose a correction.</p>
+      </div>
+      <div class="equation-card" aria-label="Syndrome equation">
+        <span>SYNDROME</span>
+        <strong>s = H · e <small>mod 2</small></strong>
+        <p>Every active check means an odd number of neighboring errors.</p>
+      </div>
+    </section>
+
+    <section class="workspace">
+      <aside class="control-panel">
+        <div class="panel-heading">
+          <div><span class="step">01</span><h2>Inject an error</h2></div>
+          <span class="status-dot">LIVE</span>
+        </div>
+
+        <label class="field-label" for="presetSelect">SCENARIO</label>
+        <select id="presetSelect">
+          <option value="single">Single physical error</option>
+          <option value="chain">Short error chain</option>
+          <option value="logical">Logical loop</option>
+          <option value="random">Random physical noise</option>
+        </select>
+
+        <div class="button-stack">
+          <button class="primary" id="loadPreset">Load scenario <span>→</span></button>
+          <button class="secondary" id="decodeButton">Run decoder <span class="key">D</span></button>
+          <button class="ghost" id="resetButton">Reset lattice</button>
+        </div>
+
+        <div class="instruction">
+          <span>TIP</span>
+          <p>Click any lattice edge to toggle a physical <b>X error</b>. Checks at the chain’s endpoints light up automatically.</p>
+        </div>
+
+        <div class="legend">
+          <h3>Legend</h3>
+          <div><i class="swatch error"></i> Physical error</div>
+          <div><i class="swatch check"></i> Active stabilizer</div>
+          <div><i class="swatch correction"></i> Decoder correction</div>
+          <div><i class="swatch residual"></i> Remaining logical chain</div>
+        </div>
+      </aside>
+
+      <section class="lattice-card">
+        <div class="card-heading">
+          <div>
+            <span class="step">02</span>
+            <div><h2>Inspect the syndrome</h2><p>6 × 8 periodic lattice · 96 data qubits · 48 vertex checks</p></div>
+          </div>
+          <div class="view-tabs" role="group" aria-label="Lattice view">
+            <button class="active" data-view="lattice">Lattice</button>
+            <button data-view="matrix">Syndrome vector</button>
+          </div>
+        </div>
+
+        <div class="lattice-wrap" id="latticeView">
+          <svg id="lattice" viewBox="0 0 820 520" role="img" aria-label="Interactive toric surface-code lattice"></svg>
+          <div class="boundary-label horizontal">periodic boundary ↔</div>
+          <div class="boundary-label vertical">periodic boundary ↕</div>
+        </div>
+        <div class="matrix-view" id="matrixView" hidden>
+          <div class="matrix-header"><span>Stabilizer measurements</span><span id="vectorSummary">48 checks</span></div>
+          <div id="syndromeVector" class="syndrome-vector"></div>
+          <p>Each bit is the parity of the four edges touching one vertex. A <b>1</b> is a detection event.</p>
+        </div>
+
+        <div class="metrics">
+          <div><span>PHYSICAL ERRORS</span><strong id="errorCount">0</strong></div>
+          <div><span>ACTIVE CHECKS</span><strong id="checkCount">0</strong></div>
+          <div><span>CORRECTION WEIGHT</span><strong id="correctionCount">—</strong></div>
+          <div class="outcome neutral" id="outcomeMetric"><span>LOGICAL OUTCOME</span><strong id="outcomeText">READY</strong></div>
+        </div>
+      </section>
+    </section>
+
+    <section class="explanation-card">
+      <div class="panel-heading">
+        <div><span class="step">03</span><h2>Understand the result</h2></div>
+        <button class="ghost small" id="walkthroughButton">Show protocol</button>
+      </div>
+      <div class="explanation-grid">
+        <div class="result-icon" id="resultIcon">◎</div>
+        <div>
+          <p class="result-kicker" id="resultKicker">NO EXPERIMENT RUNNING</p>
+          <h3 id="resultTitle">Select a scenario or draw an error chain.</h3>
+          <p id="resultBody">SyndromeScope will calculate which stabilizers detect the chain and show whether the decoder restores the logical state.</p>
+        </div>
+        <div class="pipeline">
+          <div><i>1</i><span>Physical error</span></div><b>→</b>
+          <div><i>2</i><span>Syndrome</span></div><b>→</b>
+          <div><i>3</i><span>Correction</span></div><b>→</b>
+          <div><i>4</i><span>Logical test</span></div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <span>Built for the QuantUM Qiskit Fall Fest Challenge</span>
+      <span>Prototype protocol: toric surface code · greedy minimum-distance decoder</span>
+    </footer>
+  </main>
+
+  <dialog id="helpDialog">
+    <button class="dialog-close" id="closeHelp" aria-label="Close help">×</button>
+    <p class="eyebrow">HOW IT WORKS</p>
+    <h2>A surface code detects endpoints, not paths.</h2>
+    <ol>
+      <li><b>Physical errors</b> form chains along data-qubit edges.</li>
+      <li><b>Vertex stabilizers</b> report odd parity at chain endpoints.</li>
+      <li>The <b>decoder</b> connects detection events using a likely correction path.</li>
+      <li>If error + correction wraps around the periodic surface, the syndrome is clear—but the logical qubit has flipped.</li>
+    </ol>
+    <p class="dialog-note">This educational prototype uses a greedy minimum-distance decoder. Production systems often use minimum-weight perfect matching or more advanced decoders.</p>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>
