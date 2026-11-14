@@ -6,6 +6,6 @@ An interactive toric surface-code error-chain explorer. Users can toggle physica
 
 Serve the `dist` directory with any static HTTP server and open `index.html`.
 
-## IBM Cloud path
+## IBM Cloud deployment
 
-The app is buildless static HTML/CSS/JavaScript and can be placed in an nginx container for IBM Cloud Code Engine. A later FastAPI/Qiskit service can replace the in-browser syndrome and decoder functions while preserving the current interface.
+The included `Dockerfile` serves the buildless application through nginx on port 8080 for IBM Cloud Code Engine. See `IBM_CLOUD.md` for deployment instructions. A later FastAPI/Qiskit service can replace the in-browser syndrome and decoder functions while preserving the current interface.
